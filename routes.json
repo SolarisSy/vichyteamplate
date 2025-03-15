@@ -7,5 +7,13 @@
   "/api/categories": "/categories",
   "/api/products": "/products",
   "/api/orders": "/orders",
-  "/api/users": "/users"
+  "/api/users": "/users",
+  "/api/products/:id": "/products/:id",
+  "/api/categories/:id": "/categories/:id",
+  "/api/orders/:id": "/orders/:id",
+  "/api/users/:id": "/users/:id",
+  "/api/products?*": "/products?:1",
+  "/api/categories?*": "/categories?:1",
+  "/api/orders?*": "/orders?:1",
+  "/api/users?*": "/users?:1"
 } 
