@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import customFetch from '../../axios/custom';
 import toast from 'react-hot-toast';
@@ -6,28 +6,30 @@ import { nanoid } from 'nanoid';
 import { HiPlus, HiX } from 'react-icons/hi';
 import { Product, ProductColor, ProductImage, ProductSize } from '../../types/product';
 import { uploadImages } from '../../services/imageService';
+import { useCategories } from '../../context/CategoryContext';
 
 const ProductForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
+  const { categories, loading: loadingCategories } = useCategories();
   
   // Basic product info
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [price, setPrice] = useState('');
-  const [stock, setStock] = useState('');
-  const [popularity, setPopularity] = useState('0');
-  const [featured, setFeatured] = useState(true);
+  const [title, setTitle] = React.useState('');
+  const [description, setDescription] = React.useState('');
+  const [category, setCategory] = React.useState('');
+  const [price, setPrice] = React.useState('');
+  const [stock, setStock] = React.useState('');
+  const [popularity, setPopularity] = React.useState('0');
+  const [featured, setFeatured] = React.useState(true);
   
   // Images
-  const [images, setImages] = useState<ProductImage[]>([]);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
+  const [images, setImages] = React.useState<ProductImage[]>([]);
+  const [imageFiles, setImageFiles] = React.useState<File[]>([]);
+  const [primaryImageIndex, setPrimaryImageIndex] = React.useState(0);
   
   // Sizes
-  const [sizes, setSizes] = useState<ProductSize[]>([
+  const [sizes, setSizes] = React.useState<ProductSize[]>([
     { name: 'XS', available: false },
     { name: 'S', available: false },
     { name: 'M', available: false },
@@ -37,21 +39,21 @@ const ProductForm = () => {
   ]);
   
   // Colors
-  const [colors, setColors] = useState<ProductColor[]>([]);
-  const [newColorName, setNewColorName] = useState('');
-  const [newColorHex, setNewColorHex] = useState('#000000');
+  const [colors, setColors] = React.useState<ProductColor[]>([]);
+  const [newColorName, setNewColorName] = React.useState('');
+  const [newColorHex, setNewColorHex] = React.useState('#000000');
   
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Fetch product data if in edit mode
-  useEffect(() => {
+  React.useEffect(() => {
     if (isEditMode) {
       const fetchProduct = async () => {
         setIsLoading(true);
         try {
           const response = await customFetch.get(`/products/${id}`);
-          const product = response.data;
+          const product = response.data as Product;
           
           // Set basic info
           setTitle(product.title);
@@ -77,8 +79,8 @@ const ProductForm = () => {
           
           // Set sizes if they exist
           if (product.sizes && Array.isArray(product.sizes)) {
-            setSizes(prev => {
-              return prev.map(size => {
+            setSizes((prev: ProductSize[]) => {
+              return prev.map((size: ProductSize) => {
                 const foundSize = product.sizes.find((s: ProductSize) => s.name === size.name);
                 return foundSize ? { ...foundSize } : size;
               });
@@ -101,64 +103,51 @@ const ProductForm = () => {
   }, [id, isEditMode]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    console.log("Files selected:", files.length);
-    
-    // Adiciona os arquivos à lista de arquivos
-    const newFiles = Array.from(files);
-    setImageFiles(prev => [...prev, ...newFiles]);
-    
-    // Cria previews temporários para exibição imediata
-    const newImages: ProductImage[] = Array.from(files).map(file => ({
-      id: nanoid(),
-      url: URL.createObjectURL(file),
-      isPrimary: false
-    }));
-    
-    console.log("Created temporary previews:", newImages.length);
-    
-    // Adiciona as novas imagens à lista existente
-    setImages(prev => {
-      const updated = [...prev, ...newImages];
-      // Se não houver imagem primária definida, define a primeira como primária
-      if (!prev.some(img => img.isPrimary) && updated.length > 0) {
-        updated[0].isPrimary = true;
-        setPrimaryImageIndex(0);
-      }
-      return updated;
-    });
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setImageFiles((prev: File[]) => [...prev, ...files]);
+      
+      // Create preview URLs
+      const newImages = files.map(file => ({
+        id: nanoid(),
+        url: URL.createObjectURL(file as Blob),
+        isPrimary: false
+      }));
+      
+      setImages((prev: ProductImage[]) => {
+        const updatedImages = [...prev, ...newImages];
+        // If this is the first image being added, make it primary
+        if (prev.length === 0) {
+          updatedImages[0].isPrimary = true;
+          setPrimaryImageIndex(0);
+        }
+        return updatedImages;
+      });
+    }
   };
 
   const handleRemoveImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImages((prev: ProductImage[]) => prev.filter((_, i) => i !== index));
+    setImageFiles((prev: File[]) => prev.filter((_, i) => i !== index));
     
-    // Update primary image if needed
-    if (primaryImageIndex === index) {
-      setPrimaryImageIndex(0);
-    } else if (primaryImageIndex > index) {
-      setPrimaryImageIndex(prev => prev - 1);
+    // Update primary image index if necessary
+    if (index === primaryImageIndex) {
+      if (images.length > 1) {
+        setPrimaryImageIndex(0);
+      }
+    } else if (index < primaryImageIndex) {
+      setPrimaryImageIndex((prev: number) => prev - 1);
     }
   };
 
   const handleSetPrimaryImage = (index: number) => {
     setPrimaryImageIndex(index);
-    setImages(prev => 
-      prev.map((img, i) => ({
-        ...img,
-        isPrimary: i === index
-      }))
-    );
   };
 
   const handleSizeToggle = (index: number) => {
-    setSizes(prev => 
-      prev.map((size, i) => 
-        i === index ? { ...size, available: !size.available } : size
-      )
-    );
+    setSizes((prev: ProductSize[]) => prev.map((size: ProductSize, i: number) => 
+      i === index ? { ...size, available: !size.available } : size
+    ));
   };
 
   const handleAddColor = () => {
@@ -167,7 +156,7 @@ const ProductForm = () => {
       return;
     }
     
-    setColors(prev => [
+    setColors((prev: ProductColor[]) => [
       ...prev, 
       { 
         name: newColorName, 
@@ -181,10 +170,10 @@ const ProductForm = () => {
   };
 
   const handleRemoveColor = (index: number) => {
-    setColors(prev => prev.filter((_, i) => i !== index));
+    setColors((prev: ProductColor[]) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     
@@ -205,7 +194,7 @@ const ProductForm = () => {
         stock: Number(stock),
         popularity: Number(popularity),
         featured,
-        sizes: sizes.filter(size => size.available),
+        sizes: sizes.filter((size: ProductSize) => size.available),
         colors,
         updatedAt: new Date().toISOString()
       };
@@ -223,7 +212,7 @@ const ProductForm = () => {
         if (isEditMode) {
           // For edit mode, use the existing image URLs and update primary status
           Object.assign(productData, { 
-            images: images.map((img, index) => ({
+            images: images.map((img: ProductImage, index: number) => ({
               ...img,
               isPrimary: index === primaryImageIndex
             })),
@@ -237,7 +226,7 @@ const ProductForm = () => {
               // Upload images and get back URLs
               const uploadedImageUrls = await uploadImages(imageFiles);
               
-              const newImages = uploadedImageUrls.map((url, index) => ({
+              const newImages = uploadedImageUrls.map((url: string, index: number) => ({
                 id: nanoid(),
                 url,
                 isPrimary: index === primaryImageIndex
@@ -276,14 +265,15 @@ const ProductForm = () => {
       // Navigate back to products list
       navigate('/admin/products');
     } catch (error) {
+      console.error('Error saving product:', error);
       toast.error(isEditMode ? 'Failed to update product' : 'Failed to create product');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
-    return <div className="text-center py-10">Loading product data...</div>;
+  if (isLoading || loadingCategories) {
+    return <div className="text-center py-10">Loading...</div>;
   }
 
   return (
@@ -304,7 +294,7 @@ const ProductForm = () => {
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 required
               />
@@ -316,15 +306,16 @@ const ProductForm = () => {
               </label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategory(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 required
               >
                 <option value="">Select Category</option>
-                <option value="special-edition">Special Edition</option>
-                <option value="luxury-collection">Luxury Collection</option>
-                <option value="summer-edition">Summer Edition</option>
-                <option value="unique-collection">Unique Collection</option>
+                {categories.map((cat: { id: string; slug: string; name: string }) => (
+                  <option key={cat.id} value={cat.slug}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
             
@@ -335,7 +326,7 @@ const ProductForm = () => {
               <input
                 type="number"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrice(e.target.value)}
                 min="0"
                 step="0.01"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -350,7 +341,7 @@ const ProductForm = () => {
               <input
                 type="number"
                 value={stock}
-                onChange={(e) => setStock(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStock(e.target.value)}
                 min="0"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 required
@@ -364,7 +355,7 @@ const ProductForm = () => {
               <input
                 type="number"
                 value={popularity}
-                onChange={(e) => setPopularity(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPopularity(e.target.value)}
                 min="0"
                 max="100"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -376,7 +367,7 @@ const ProductForm = () => {
                 type="checkbox"
                 id="featured"
                 checked={featured}
-                onChange={(e) => setFeatured(e.target.checked)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFeatured(e.target.checked)}
                 className="h-4 w-4 text-secondaryBrown border-gray-300 rounded"
               />
               <label htmlFor="featured" className="ml-2 block text-sm text-gray-700">
@@ -392,7 +383,7 @@ const ProductForm = () => {
           </label>
           <textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
             rows={4}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
@@ -420,33 +411,31 @@ const ProductForm = () => {
           
           {/* Image Previews */}
           {images.length > 0 && (
-            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {images.map((image, index) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {images.map((image: ProductImage, index: number) => (
                 <div 
-                  key={image.id} 
-                  className={`relative border rounded-md overflow-hidden ${
-                    index === primaryImageIndex ? 'ring-2 ring-secondaryBrown' : ''
-                  }`}
+                  key={image.id}
+                  className="relative group border border-gray-200 rounded-md overflow-hidden"
                 >
                   <img 
                     src={image.url} 
-                    alt="Product preview" 
+                    alt={`Product ${index + 1}`}
                     className="w-full h-40 object-cover"
+                    onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                      console.error("Error loading image:", e.currentTarget.src);
+                      e.currentTarget.src = '/placeholder-image.jpg';
+                    }}
                   />
-                  <div className="absolute top-2 right-2 flex space-x-2">
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-center justify-center">
                     <button
                       type="button"
                       onClick={() => handleSetPrimaryImage(index)}
-                      className={`p-1 rounded-full ${
-                        index === primaryImageIndex 
-                          ? 'bg-secondaryBrown text-white' 
-                          : 'bg-white text-gray-700'
+                      className={`p-1 bg-white text-secondaryBrown rounded-full mx-1 ${
+                        index === primaryImageIndex ? 'opacity-0' : ''
                       }`}
                       title="Set as primary image"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
+                      <HiPlus className="h-5 w-5" />
                     </button>
                     <button
                       type="button"
@@ -472,7 +461,7 @@ const ProductForm = () => {
         <div className="mb-6">
           <h3 className="text-lg font-medium mb-4">Available Sizes</h3>
           <div className="flex flex-wrap gap-3">
-            {sizes.map((size, index) => (
+            {sizes.map((size: ProductSize, index: number) => (
               <button
                 key={size.name}
                 type="button"
@@ -491,9 +480,8 @@ const ProductForm = () => {
         
         {/* Colors Section */}
         <div className="mb-6">
-          <h3 className="text-lg font-medium mb-4">Available Colors</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <h3 className="text-lg font-medium mb-4">Colors</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Color Name
@@ -501,38 +489,35 @@ const ProductForm = () => {
               <input
                 type="text"
                 value={newColorName}
-                onChange={(e) => setNewColorName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewColorName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                placeholder="e.g. Red, Blue, Green"
+                placeholder="e.g., Navy Blue"
               />
             </div>
-            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Color Hex
+                Color Code
               </label>
               <input
                 type="color"
                 value={newColorHex}
-                onChange={(e) => setNewColorHex(e.target.value)}
-                className="w-full h-10 px-1 py-1 border border-gray-300 rounded-md"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewColorHex(e.target.value)}
+                className="w-full h-10"
               />
-            </div>
-            
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={handleAddColor}
-                className="bg-secondaryBrown text-white px-4 py-2 rounded-md flex items-center"
-              >
-                <HiPlus className="mr-2" /> Add Color
-              </button>
             </div>
           </div>
           
+          <button
+            type="button"
+            onClick={handleAddColor}
+            className="mb-4 px-4 py-2 border border-secondaryBrown text-secondaryBrown rounded-md hover:bg-secondaryBrown hover:text-white transition-colors"
+          >
+            Add Color
+          </button>
+          
           {colors.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {colors.map((color, index) => (
+              {colors.map((color: ProductColor, index: number) => (
                 <div 
                   key={index}
                   className="flex items-center justify-between p-2 border border-gray-200 rounded-md"

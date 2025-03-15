@@ -22,6 +22,7 @@ export interface Product {
   category: string;
   price: number;
   images: ProductImage[];
+  image?: string;
   sizes: ProductSize[];
   colors: ProductColor[];
   popularity: number;
