@@ -1,5 +1,11 @@
 {
   "/api/*": "/$1",
   "/categories": "/categories",
-  "/products": "/products"
+  "/products": "/products",
+  "/orders": "/orders",
+  "/users": "/users",
+  "/api/categories": "/categories",
+  "/api/products": "/products",
+  "/api/orders": "/orders",
+  "/api/users": "/users"
 } 
