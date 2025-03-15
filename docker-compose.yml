@@ -12,7 +12,7 @@ services:
     networks:
       - app-network
     environment:
-      - VITE_API_URL=http://localhost:3001
+      - VITE_API_URL=/api
     restart: unless-stopped
 
   backend:
