@@ -5,13 +5,13 @@ interface ProductItemProps {
   id: string;
   image: string;
   title: string;
-  category: string;
+  category?: string;
   price: number;
   popularity?: number;
   stock?: number;
 }
 
-const ProductItem = ({ id, image, title, category, price, popularity, stock }: ProductItemProps) => {
+const ProductItem = ({ id, image, title, category = "", price, popularity, stock }: ProductItemProps) => {
   // Verificar se é um produto novo (adicionado nos últimos 7 dias)
   const isNewProduct = () => {
     // Simulando que todos os produtos são novos para fins de demonstração
