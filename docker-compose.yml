@@ -28,7 +28,9 @@ services:
     networks:
       - app-network
     volumes:
+      - ./db.json:/app/db.json:ro
       - ./public:/app/public:ro
+      - ./routes.json:/app/routes.json:ro
     environment:
       - NODE_ENV=production
     healthcheck:
@@ -42,7 +44,6 @@ services:
       - "ep.host=${EP_HOST}"
       - "ep.type=secondary"
       - "traefik.http.routers.backend.rule=Host(`${EP_HOST}`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.middlewares=strip-api"
       - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/api"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
 
