@@ -6,6 +6,7 @@ import customFetch from "../axios/custom";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { checkCheckoutFormData } from "../utils/checkCheckoutFormData";
+import { useState } from "react";
 
 /*
 address: "Marka Markovic 22"
@@ -36,6 +37,13 @@ const Checkout = () => {
   const { productsInCart, subtotal } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+
+  const steps = [
+    { id: 1, name: 'Contact' },
+    { id: 2, name: 'Shipping' },
+    { id: 3, name: 'Payment' }
+  ];
 
   const handleCheckoutSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -78,453 +86,223 @@ const Checkout = () => {
   };
 
   return (
-    <div className="mx-auto max-w-screen-2xl">
-      <div className="pb-24 pt-16 px-5 max-[400px]:px-3">
-        <h2 className="sr-only">Checkout</h2>
+    <div className="max-w-screen-xl mx-auto px-4 py-8 sm:py-16">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Checkout</h1>
 
-        <form
-          onSubmit={handleCheckoutSubmit}
-          className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16"
-        >
-          <div>
-            <div>
-              <h2 className="text-lg font-medium text-gray-900">
-                Contact information
-              </h2>
+      {/* Progress Steps */}
+      <div className="mb-8">
+        <div className="flex items-center justify-center space-x-4">
+          {steps.map((step) => (
+            <div key={step.id} className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                currentStep === step.id 
+                  ? 'bg-secondaryBrown text-white' 
+                  : currentStep > step.id 
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-200 text-gray-600'
+              }`}>
+                {currentStep > step.id ? '✓' : step.id}
+              </div>
+              <span className="ml-2 text-sm hidden sm:block">{step.name}</span>
+              {step.id !== steps.length && (
+                <div className="w-12 h-1 mx-2 bg-gray-200">
+                  <div className={`h-full ${currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'}`} />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
 
-              <div className="mt-4">
-                <label
-                  htmlFor="email-address"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Email address
-                </label>
-                <div className="mt-1">
+      <form onSubmit={handleCheckoutSubmit} className="space-y-8">
+        {/* Step 1: Contact Information */}
+        {currentStep === 1 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label htmlFor="emailAddress" className="block text-sm font-medium text-gray-700">Email Address</label>
+                <input
+                  type="email"
+                  id="emailAddress"
+                  name="emailAddress"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Shipping Information */}
+        {currentStep === 2 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700">Street Address</label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                />
+              </div>
+              <div>
+                <label htmlFor="apartment" className="block text-sm font-medium text-gray-700">Apartment, suite, etc.</label>
+                <input
+                  type="text"
+                  id="apartment"
+                  name="apartment"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
                   <input
-                    type="email"
-                    id="email-address"
-                    name="emailAddress"
-                    autoComplete="email"
-                    className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                    required={true}
+                    type="text"
+                    id="city"
+                    name="city"
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">Postal Code</label>
+                  <input
+                    type="text"
+                    id="postalCode"
+                    name="postalCode"
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
                   />
                 </div>
               </div>
             </div>
+          </div>
+        )}
 
-            <div className="mt-10 border-t border-gray-200 pt-10">
-              <h2 className="text-lg font-medium text-gray-900">
-                Shipping information
-              </h2>
-
-              <div className="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
-                <div>
-                  <label
-                    htmlFor="first-name"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    First name
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="first-name"
-                      name="firstName"
-                      autoComplete="given-name"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="last-name"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Last name
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="last-name"
-                      name="lastName"
-                      autoComplete="family-name"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label
-                    htmlFor="company"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Company
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="company"
-                      id="company"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label
-                    htmlFor="address"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Address
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="address"
-                      id="address"
-                      autoComplete="street-address"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label
-                    htmlFor="apartment"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Apartment, suite, etc.
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="apartment"
-                      id="apartment"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="city"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    City
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="city"
-                      id="city"
-                      autoComplete="address-level2"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="country"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Country
-                  </label>
-                  <div className="mt-1">
-                    <select
-                      id="country"
-                      name="country"
-                      autoComplete="country-name"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    >
-                      <option>United States</option>
-                      <option>Canada</option>
-                      <option>Mexico</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="region"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    State / Province
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="region"
-                      id="region"
-                      autoComplete="address-level1"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="postal-code"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Postal code
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="postalCode"
-                      id="postal-code"
-                      autoComplete="postal-code"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Phone
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="phone"
-                      id="phone"
-                      autoComplete="tel"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
+        {/* Step 3: Payment Information */}
+        {currentStep === 3 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold mb-4">Payment Information</h2>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label htmlFor="nameOnCard" className="block text-sm font-medium text-gray-700">Name on Card</label>
+                <input
+                  type="text"
+                  id="nameOnCard"
+                  name="nameOnCard"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                />
               </div>
-            </div>
-
-            {/* Payment */}
-            <div className="mt-10 border-t border-gray-200 pt-10">
-              <h2 className="text-lg font-medium text-gray-900">Payment</h2>
-
-              <fieldset className="mt-4">
-                <legend className="sr-only">Payment type</legend>
-                <div className="space-y-4 sm:flex sm:items-center sm:space-x-10 sm:space-y-0">
-                  {paymentMethods.map((paymentMethod, paymentMethodIdx) => (
-                    <div key={paymentMethod.id} className="flex items-center">
-                      {paymentMethodIdx === 0 ? (
-                        <input
-                          id={paymentMethod.id}
-                          name="paymentType"
-                          type="radio"
-                          defaultChecked
-                          className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                      ) : (
-                        <input
-                          id={paymentMethod.id}
-                          name="paymentType"
-                          type="radio"
-                          className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                      )}
-
-                      <label
-                        htmlFor={paymentMethod.id}
-                        className="ml-3 block text-sm font-medium text-gray-700"
-                      >
-                        {paymentMethod.title}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </fieldset>
-
-              <div className="mt-6 grid grid-cols-4 gap-x-4 gap-y-6">
-                <div className="col-span-4">
-                  <label
-                    htmlFor="card-number"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Card number
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="card-number"
-                      name="cardNumber"
-                      autoComplete="cc-number"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
-                <div className="col-span-4">
-                  <label
-                    htmlFor="name-on-card"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Name on card
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="name-on-card"
-                      name="nameOnCard"
-                      autoComplete="cc-name"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
-                <div className="col-span-3">
-                  <label
-                    htmlFor="expiration-date"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Expiration date (MM/YY)
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="expirationDate"
-                      id="expiration-date"
-                      autoComplete="cc-exp"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
-                </div>
-
+              <div>
+                <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700">Card Number</label>
+                <input
+                  type="text"
+                  id="cardNumber"
+                  name="cardNumber"
+                  required
+                  pattern="[0-9]{16}"
+                  maxLength={16}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label
-                    htmlFor="cvc"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    CVC
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="cvc"
-                      id="cvc"
-                      autoComplete="csc"
-                      className="block w-full py-2 indent-2 border-gray-300 outline-none focus:border-gray-400 border border shadow-sm sm:text-sm"
-                      required={true}
-                    />
-                  </div>
+                  <label htmlFor="expirationDate" className="block text-sm font-medium text-gray-700">Expiration Date</label>
+                  <input
+                    type="text"
+                    id="expirationDate"
+                    name="expirationDate"
+                    required
+                    placeholder="MM/YY"
+                    pattern="[0-9]{2}/[0-9]{2}"
+                    maxLength={5}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="cvc" className="block text-sm font-medium text-gray-700">CVC</label>
+                  <input
+                    type="text"
+                    id="cvc"
+                    name="cvc"
+                    required
+                    pattern="[0-9]{3,4}"
+                    maxLength={4}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondaryBrown focus:ring-secondaryBrown"
+                  />
                 </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Order summary */}
-          <div className="mt-10 lg:mt-0">
-            <h2 className="text-lg font-medium text-gray-900">Order summary</h2>
-
-            <div className="mt-4 border border-gray-200 bg-white shadow-sm">
-              <h3 className="sr-only">Items in your cart</h3>
-              <ul role="list" className="divide-y divide-gray-200">
-                {productsInCart.map((product) => (
-                  <li key={product?.id} className="flex px-4 py-6 sm:px-6">
-                    <div className="flex-shrink-0">
-                      <img
-                        src={`/src/assets/${product?.image}`}
-                        alt={product?.title}
-                        className="w-20 rounded-md"
-                      />
-                    </div>
-
-                    <div className="ml-6 flex flex-1 flex-col">
-                      <div className="flex">
-                        <div className="min-w-0 flex-1">
-                          <h4 className="text-sm font-medium text-gray-700 hover:text-gray-800">
-                            {product?.title}
-                          </h4>
-                          <p className="mt-1 text-sm text-gray-500">
-                            {product?.color}
-                          </p>
-                          <p className="mt-1 text-sm text-gray-500">
-                            {product?.size}
-                          </p>
-                        </div>
-
-                        <div className="ml-4 flow-root flex-shrink-0">
-                          <button
-                            type="button"
-                            className="-m-2.5 flex items-center justify-center bg-white p-2.5 text-gray-400 hover:text-gray-500"
-                            onClick={() =>
-                              dispatch(
-                                removeProductFromTheCart({ id: product?.id })
-                              )
-                            }
-                          >
-                            <span className="sr-only">Remove</span>
-                            <TrashIcon className="h-5 w-5" aria-hidden="true" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-1 items-end justify-between pt-2">
-                        <p className="mt-1 text-sm font-medium text-gray-900">
-                          ${product?.price}
-                        </p>
-
-                        <div className="ml-4">
-                          <p className="text-base">
-                            Quantity: {product?.quantity}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <dl className="space-y-6 border-t border-gray-200 px-4 py-6 sm:px-6">
-                <div className="flex items-center justify-between">
-                  <dt className="text-sm">Subtotal</dt>
-                  <dd className="text-sm font-medium text-gray-900">
-                    ${subtotal}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between">
-                  <dt className="text-sm">Shipping</dt>
-                  <dd className="text-sm font-medium text-gray-900">
-                    ${subtotal ? 5 : 0}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between">
-                  <dt className="text-sm">Taxes</dt>
-                  <dd className="text-sm font-medium text-gray-900">
-                    ${subtotal ? subtotal / 5 : 0}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between border-t border-gray-200 pt-6">
-                  <dt className="text-base font-medium">Total</dt>
-                  <dd className="text-base font-medium text-gray-900">
-                    ${subtotal ? subtotal + 5 + subtotal / 5 : 0}
-                  </dd>
-                </div>
-              </dl>
-
-              <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
-                <Button text="Confirm Order" mode="brown" />
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
+        {/* Navigation Buttons */}
+        <div className="flex justify-between mt-8">
+          {currentStep > 1 && (
+            <button
+              type="button"
+              onClick={() => setCurrentStep(currentStep - 1)}
+              className="px-6 py-3 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition duration-300 touch-manipulation"
+            >
+              Previous
+            </button>
+          )}
+          {currentStep < steps.length ? (
+            <button
+              type="button"
+              onClick={() => setCurrentStep(currentStep + 1)}
+              className="ml-auto px-6 py-3 bg-secondaryBrown text-white rounded-md hover:bg-opacity-90 transition duration-300 touch-manipulation"
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="ml-auto px-6 py-3 bg-secondaryBrown text-white rounded-md hover:bg-opacity-90 transition duration-300 touch-manipulation"
+            >
+              Place Order
+            </button>
+          )}
+        </div>
+      </form>
     </div>
   );
 };
+
 export default Checkout;

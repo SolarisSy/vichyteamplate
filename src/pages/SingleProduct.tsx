@@ -80,119 +80,142 @@ const SingleProduct = () => {
   };
 
   return (
-    <div className="max-w-screen-2xl mx-auto px-5 max-[400px]:px-3">
-      <div className="grid grid-cols-3 gap-x-8 max-lg:grid-cols-1">
-        <div className="lg:col-span-2">
-          <img
-            src={singleProduct?.images && singleProduct.images.length > 0 
-              ? (singleProduct.images.find(img => img.isPrimary)?.url || singleProduct.images[0]?.url || singleProduct.image) 
-              : singleProduct?.image}
-            alt={singleProduct?.title}
-            onError={(e) => {
-              console.error("Error loading image:", e.currentTarget.src);
-              e.currentTarget.src = '/placeholder-image.jpg'; // Imagem de fallback
-            }}
-          />
-        </div>
-        <div className="w-full flex flex-col gap-5 mt-9">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-4xl">{singleProduct?.title}</h1>
-            <div className="flex justify-between items-center">
-              <p className="text-base text-secondaryBrown">
-                {formatCategoryName(singleProduct?.category || "")}
-              </p>
-              <p className="text-base font-bold">${ singleProduct?.price }</p>
+    <div className="max-w-screen-xl mx-auto px-4 py-8 sm:py-16">
+      {singleProduct ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Product Image */}
+            <div className="relative aspect-square w-full">
+              <img
+                src={singleProduct.image}
+                alt={singleProduct.name}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
+
+            {/* Product Info */}
+            <div className="space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{singleProduct.name}</h1>
+                <p className="mt-2 text-xl text-gray-900">${singleProduct.price}</p>
+              </div>
+
+              <div className="space-y-4">
+                {/* Size Selector */}
+                <div>
+                  <label htmlFor="size" className="block text-sm font-medium text-gray-700">
+                    Size
+                  </label>
+                  <div className="mt-2 grid grid-cols-4 gap-2">
+                    {["xs", "s", "m", "l", "xl"].map((sizeOption) => (
+                      <button
+                        key={sizeOption}
+                        onClick={() => setSize(sizeOption)}
+                        className={`flex items-center justify-center h-12 text-sm uppercase font-medium rounded-md touch-manipulation
+                          ${size === sizeOption
+                            ? 'bg-secondaryBrown text-white'
+                            : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                          }`}
+                      >
+                        {sizeOption}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Color Selector */}
+                <div>
+                  <label htmlFor="color" className="block text-sm font-medium text-gray-700">
+                    Color
+                  </label>
+                  <div className="mt-2 grid grid-cols-4 gap-2">
+                    {["black", "white", "gray", "red"].map((colorOption) => (
+                      <button
+                        key={colorOption}
+                        onClick={() => setColor(colorOption)}
+                        className={`flex items-center justify-center h-12 text-sm capitalize font-medium rounded-md touch-manipulation
+                          ${color === colorOption
+                            ? 'bg-secondaryBrown text-white'
+                            : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                          }`}
+                      >
+                        {colorOption}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quantity Selector */}
+                <div>
+                  <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
+                    Quantity
+                  </label>
+                  <div className="mt-2 flex items-center space-x-4">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 text-gray-900 hover:bg-gray-200 touch-manipulation"
+                    >
+                      -
+                    </button>
+                    <span className="text-lg font-medium w-12 text-center">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 text-gray-900 hover:bg-gray-200 touch-manipulation"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Add to Cart Button */}
+                <button
+                  onClick={() => {
+                    dispatch(
+                      addProductToTheCart({
+                        ...singleProduct,
+                        size,
+                        color,
+                        quantity,
+                      })
+                    );
+                    toast.success("Product added to cart");
+                  }}
+                  className="w-full py-4 bg-secondaryBrown text-white text-lg font-medium rounded-md hover:bg-opacity-90 transition duration-300 touch-manipulation"
+                >
+                  Add to Cart
+                </button>
+              </div>
+
+              {/* Product Description */}
+              <div className="prose prose-sm mt-4">
+                <h3 className="text-lg font-medium text-gray-900">Description</h3>
+                <p className="text-gray-700">{singleProduct.description}</p>
+              </div>
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <SelectInputUpgrade
-              selectList={[
-                { id: "xs", value: "XS" },
-                { id: "sm", value: "SM" },
-                { id: "m", value: "M" },
-                { id: "lg", value: "LG" },
-                { id: "xl", value: "XL" },
-                { id: "2xl", value: "2XL" },
-              ]}
-              value={size}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setSize(() => e.target.value)
-              }
-            />
-            <SelectInputUpgrade
-              selectList={[
-                { id: "black", value: "BLACK" },
-                { id: "red", value: "RED" },
-                { id: "blue", value: "BLUE" },
-                { id: "white", value: "WHITE" },
-                { id: "rose", value: "ROSE" },
-                { id: "green", value: "GREEN" },
-              ]}
-              value={color}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setColor(() => e.target.value)
-              }
-            />
 
-            <QuantityInputUpgrade
-              value={quantity}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setQuantity(() => parseInt(e.target.value))
-              }
-            />
+          {/* Related Products */}
+          <div className="mt-16">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Related Products</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {products
+                .filter(
+                  (product) =>
+                    product.category === singleProduct.category &&
+                    product.id !== singleProduct.id
+                )
+                .slice(0, 4)
+                .map((product) => (
+                  <ProductItem key={product.id} product={product} />
+                ))}
+            </div>
           </div>
-          <div className="flex flex-col gap-3">
-            <Button mode="brown" text="Add to cart" onClick={handleAddToCart} />
-            <p className="text-secondaryBrown text-sm text-right">
-              Delivery estimated on the Friday, July 26
-            </p>
-          </div>
-          <div>
-            {/* drowdown items */}
-            <Dropdown dropdownTitle="Description">
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit. Labore
-              quos deleniti, mollitia, vitae harum suscipit voluptatem quasi, ab
-              assumenda accusantium rem praesentium accusamus quae quam tempore
-              nostrum corporis eaque. Mollitia.
-            </Dropdown>
-
-            <Dropdown dropdownTitle="Product Details">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fuga ad
-              at odio illo, necessitatibus, reprehenderit dolore voluptas ea
-              consequuntur ducimus repellat soluta mollitia facere sapiente.
-              Unde provident possimus hic dolore.
-            </Dropdown>
-
-            <Dropdown dropdownTitle="Delivery Details">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fuga ad
-              at odio illo, necessitatibus, reprehenderit dolore voluptas ea
-              consequuntur ducimus repellat soluta mollitia facere sapiente.
-              Unde provident possimus hic dolore.
-            </Dropdown>
-          </div>
+        </>
+      ) : (
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <p className="text-xl text-gray-600">Loading...</p>
         </div>
-      </div>
-
-      {/* similar products */}
-      <div>
-        <h2 className="text-black/90 text-5xl mt-24 mb-12 text-center max-lg:text-4xl">
-          Similar Products
-        </h2>
-        <div className="flex flex-wrap justify-between items-center gap-y-8 mt-12 max-xl:justify-start max-xl:gap-5 ">
-          {products.slice(0, 3).map((product: Product) => (
-            <ProductItem
-              key={product?.id}
-              id={product?.id}
-              image={product?.image}
-              title={product?.title}
-              category={product?.category}
-              price={product?.price}
-              popularity={product?.popularity}
-              stock={product?.stock}
-            />
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 };

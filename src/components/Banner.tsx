@@ -12,14 +12,6 @@ const Banner = () => {
           />
         </div>
       </div>
-      <div className="absolute bottom-4 md:bottom-10 right-4 md:right-10 z-10">
-        <Link 
-          to="/shop" 
-          className="bg-secondaryBrown text-white px-4 py-2 md:px-8 md:py-3 text-base md:text-lg rounded-md hover:bg-opacity-90 transition duration-300 shadow-md"
-        >
-          Comprar Agora
-        </Link>
-      </div>
     </section>
   );
 };
