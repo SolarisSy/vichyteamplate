@@ -44,7 +44,8 @@ services:
       - "ep.host=${EP_HOST}"
       - "ep.type=secondary"
       - "traefik.http.routers.backend.rule=Host(`${EP_HOST}`) && PathPrefix(`/api`)"
-      - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/api"
+      - "traefik.http.middlewares.backend-strip.stripprefix.prefixes=/api"
+      - "traefik.http.routers.backend.middlewares=backend-strip@docker"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
 
 networks:
