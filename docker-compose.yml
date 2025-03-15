@@ -28,7 +28,6 @@ services:
     networks:
       - app-network
     volumes:
-      - ./db.json:/app/db.json:ro
       - ./public:/app/public:ro
     environment:
       - NODE_ENV=production
