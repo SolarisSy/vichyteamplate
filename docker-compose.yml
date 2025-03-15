@@ -33,9 +33,6 @@ services:
       - ./routes.json:/app/routes.json:ro
     environment:
       - NODE_ENV=production
-      - HOST=0.0.0.0
-      - PORT=3000
-      - CORS_ORIGIN=*
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:3000/categories"]
       interval: 10s
