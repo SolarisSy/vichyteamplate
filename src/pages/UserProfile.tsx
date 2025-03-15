@@ -7,9 +7,17 @@ import { checkUserProfileFormData } from "../utils/checkUserProfileFormData";
 import { setLoginStatus } from "../features/auth/authSlice";
 import { store } from "../store";
 
+interface User {
+  id: string;
+  name: string;
+  lastname: string;
+  email: string;
+  password: string;
+}
+
 const UserProfile = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User>();
+  const [user, setUser] = useState<User | null>(null);
 
   const logout = () => {
     toast.error("Logged out successfully");
@@ -18,9 +26,15 @@ const UserProfile = () => {
     navigate("/login");
   };
 
-  const fetchUser = async (userId: number | string) => {
-    const response = await customFetch(`/users/${userId}`);
-    setUser(response.data);
+  const fetchUser = async (userId: string) => {
+    try {
+      const response = await customFetch.get(`/users/${userId}`);
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      toast.error("Failed to load user data");
+      navigate("/login");
+    }
   };
 
   const updateUser = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -30,43 +44,51 @@ const UserProfile = () => {
     const data = Object.fromEntries(formData);
     // Check if form data is valid
     if (!checkUserProfileFormData(data)) return;
-    const userId = JSON.parse(localStorage.getItem("user") || "{}").id;
-    if (userId) {
+    
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    if (storedUser?.id) {
       try {
-        await customFetch.put(`/users/${userId}`, data);
-      } catch (e) {
-        toast.error("User update failed");
-        return;
+        await customFetch.put(`/users/${storedUser.id}`, data);
+        toast.success("User updated successfully");
+        // Atualiza os dados do usuário no localStorage
+        localStorage.setItem("user", JSON.stringify({...storedUser, ...data}));
+      } catch (error) {
+        console.error("Error updating user:", error);
+        toast.error("Failed to update user data");
       }
-      toast.success("User updated successfully");
     } else {
-      toast.error("Please login to view this page");
+      toast.error("Please login to update your profile");
       navigate("/login");
     }
   };
 
   useEffect(() => {
-    const userId = JSON.parse(localStorage.getItem("user") || "{}").id;
-    if (!userId) {
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    if (!storedUser?.id) {
       toast.error("Please login to view this page");
       navigate("/login");
     } else {
-      fetchUser(userId);
+      fetchUser(storedUser.id);
     }
   }, [navigate]);
+
+  if (!user) {
+    return <div className="max-w-screen-lg mx-auto mt-24 px-5">Loading...</div>;
+  }
+
   return (
     <div className="max-w-screen-lg mx-auto mt-24 px-5">
       <h1 className="text-3xl font-bold mb-8">User Profile</h1>
       <form className="flex flex-col gap-6" onSubmit={updateUser}>
         <div className="flex flex-col gap-1">
-          <label htmlFor="firstname">First Name</label>
+          <label htmlFor="name">First Name</label>
           <input
             type="text"
             className="bg-white border border-black text-xl py-2 px-3 w-full outline-none max-[450px]:text-base"
             placeholder="Enter first name"
-            id="firstname"
+            id="name"
             name="name"
-            defaultValue={user?.name}
+            defaultValue={user.name}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -77,7 +99,7 @@ const UserProfile = () => {
             placeholder="Enter last name"
             id="lastname"
             name="lastname"
-            defaultValue={user?.lastname}
+            defaultValue={user.lastname}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -88,7 +110,7 @@ const UserProfile = () => {
             placeholder="Enter email address"
             id="email"
             name="email"
-            defaultValue={user?.email}
+            defaultValue={user.email}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -99,7 +121,7 @@ const UserProfile = () => {
             placeholder="Enter password"
             id="password"
             name="password"
-            defaultValue={user?.password}
+            defaultValue={user.password}
           />
         </div>
         <Button type="submit" text="Update Profile" mode="brown" />
