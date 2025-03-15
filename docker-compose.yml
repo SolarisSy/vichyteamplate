@@ -13,11 +13,13 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     environment:
       - VITE_API_URL=/api
+      - NODE_ENV=production
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "ep.host=${EP_HOST}"
       - "ep.type=primary"
+      - "ep.port=80"
 
   backend:
     build:
@@ -32,6 +34,7 @@ services:
       - ./public:/app/public:ro
     environment:
       - NODE_ENV=production
+      - PORT=3000
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:3000/categories"]
       interval: 10s
@@ -43,6 +46,7 @@ services:
       - "ep.host=${EP_HOST}"
       - "ep.type=secondary"
       - "ep.path=/api"
+      - "ep.port=3000"
 
 networks:
   app-network:

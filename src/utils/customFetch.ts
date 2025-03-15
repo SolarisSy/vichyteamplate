@@ -1,8 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosResponse, AxiosError } from 'axios';
 
 // Cria uma instância do axios com configurações padrão
 const customFetch = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001', // URL base da sua API
+  baseURL: '/api', // Usando caminho relativo para a API
   timeout: 10000, // Timeout de 10 segundos
   headers: {
     'Content-Type': 'application/json',
@@ -11,8 +11,8 @@ const customFetch = axios.create({
 
 // Interceptor para tratamento global de erros
 customFetch.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => {
     console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
