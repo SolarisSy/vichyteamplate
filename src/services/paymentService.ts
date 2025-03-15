@@ -69,7 +69,7 @@ class PaymentService {
       // Preparar os itens do carrinho para a API
       const cartItemsForApi = cartItems.map(item => ({
         product_hash: item.id,
-        title: item.title,
+        title: item.title || "Produto Fashion Shop",
         price: Math.round(item.price * 100), // Preço em centavos
         quantity: item.quantity,
         operation_type: 1,
