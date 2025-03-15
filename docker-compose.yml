@@ -16,6 +16,8 @@ services:
       - "traefik.enable=true"
       - "ep.host=${EP_HOST}"
       - "ep.type=primary"
+      - "traefik.http.routers.frontend.rule=Host(`${EP_HOST}`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
 
   backend:
     build:
@@ -40,8 +42,10 @@ services:
       - "traefik.enable=true"
       - "ep.host=${EP_HOST}"
       - "ep.type=secondary"
-      - "ep.path=/api"
-      - "ep.strip-path=true"
+      - "traefik.http.routers.backend.rule=Host(`${EP_HOST}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.middlewares=strip-api"
+      - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/api"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
 
 networks:
   app-network:
