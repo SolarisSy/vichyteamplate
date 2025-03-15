@@ -57,6 +57,12 @@ class PaymentService {
     totalAmount: number
   ): Promise<{ qrCodeString: string; copyPasteCode: string }> {
     try {
+      // Formatar o CPF removendo caracteres especiais
+      const formattedDocument = customerData.document.replace(/\D/g, '');
+      
+      // Formatar o telefone removendo caracteres especiais
+      const formattedPhone = customerData.phone_number.replace(/\D/g, '');
+      
       // Converter o valor total para centavos
       const amountInCents = Math.round(totalAmount * 100);
       
@@ -76,7 +82,11 @@ class PaymentService {
         amount: amountInCents,
         offer_hash: "pdnczi9glx",
         payment_method: "pix",
-        customer: customerData,
+        customer: {
+          ...customerData,
+          document: formattedDocument,
+          phone_number: formattedPhone
+        },
         cart: cartItemsForApi.length > 0 ? cartItemsForApi : [
           {
             product_hash: "c3sw3gbybu",
@@ -84,14 +94,20 @@ class PaymentService {
             price: amountInCents,
             quantity: 1,
             operation_type: 1,
-            tangible: false,
+            tangible: true,
             cover: null
           }
         ],
-        installments: 1
+        installments: 1,
+        split_payment: false,
+        max_split_amount: 1,
+        payment_method_group: "pix",
+        payment_method_id: "pix",
+        payment_method_flow: "redirect",
+        currency: "BRL"
       };
 
-      console.log('[PaymentService] Enviando requisição:', requestBody);
+      console.log('[PaymentService] Enviando requisição:', JSON.stringify(requestBody, null, 2));
 
       // Fazer a requisição para a API
       const response = await axios.post<PaymentResponse>(
@@ -119,7 +135,6 @@ class PaymentService {
       }
 
       // Verificar se a resposta foi bem-sucedida e extrair os dados do PIX
-      // Verificar diferentes possíveis localizações do QR code na resposta
       let qrCodeString = '';
       let copyPasteCode = '';
 
@@ -160,7 +175,6 @@ class PaymentService {
       // Se ainda não encontrou, usar um valor de fallback para testes
       if (!qrCodeString) {
         console.warn('[PaymentService] QR Code não encontrado na resposta. Usando valor de fallback para testes.');
-        // Gerar um QR code de teste com o ID da transação
         qrCodeString = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PIX_TEST_${response.data.id || 'UNKNOWN'}`;
         copyPasteCode = `PIX_TEST_${response.data.id || 'UNKNOWN'}`;
       }
@@ -169,9 +183,20 @@ class PaymentService {
       await this.registerSale(amountInCents / 100, requestBody.cart[0].title);
 
       return { qrCodeString, copyPasteCode };
-    } catch (error) {
-      console.error('[PaymentService] Erro ao gerar PIX:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('[PaymentService] Erro ao gerar PIX:', error.response?.data || error);
+      
+      // Melhorar a mensagem de erro para o usuário
+      let errorMessage = 'Erro ao gerar o PIX. ';
+      if (error.response?.data?.message) {
+        errorMessage += error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage += error.response.data.error;
+      } else if (error.message) {
+        errorMessage += error.message;
+      }
+      
+      throw new Error(errorMessage);
     }
   }
 
