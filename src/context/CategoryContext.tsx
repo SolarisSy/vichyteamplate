@@ -13,7 +13,7 @@ export interface Category {
   updatedAt: string;
 }
 
-interface CategoryContextType {
+export interface CategoryContextType {
   categories: Category[];
   loading: boolean;
   error: string | null;
@@ -31,8 +31,20 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setLoading(true);
     try {
       const response = await customFetch.get('/categories');
-      // Ordenar por displayOrder
-      const sortedCategories = response.data.sort((a: Category, b: Category) => a.displayOrder - b.displayOrder);
+      
+      // Verificar se response.data é um array
+      if (!Array.isArray(response.data)) {
+        console.error('Dados de categorias não são um array:', response.data);
+        setCategories([]);
+        setError('Formato de dados inválido');
+        return;
+      }
+
+      // Ordenar por displayOrder (apenas se for um array)
+      const sortedCategories = [...response.data].sort(
+        (a: Category, b: Category) => (a.displayOrder || 0) - (b.displayOrder || 0)
+      );
+      
       // Filtrar apenas categorias ativas
       const activeCategories = sortedCategories.filter((cat: Category) => cat.isActive);
       setCategories(activeCategories);
@@ -40,6 +52,7 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (err) {
       console.error('Erro ao carregar categorias:', err);
       setError('Falha ao carregar categorias');
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -66,7 +79,7 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export const useCategories = () => {
   const context = useContext(CategoryContext);
   if (context === undefined) {
-    throw new Error('useCategories deve ser usado dentro de um CategoryProvider');
+    throw new Error('useCategories must be used within a CategoryProvider');
   }
   return context;
 }; 

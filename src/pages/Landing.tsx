@@ -13,9 +13,18 @@ const Landing = () => {
     const fetchFeaturedProducts = async () => {
       try {
         const response = await customFetch.get('/products?_sort=createdAt&_order=desc&_limit=12');
+        
+        // Verificar se response.data é um array
+        if (!Array.isArray(response.data)) {
+          console.error('Dados de produtos não são um array:', response.data);
+          setFeaturedProducts([]);
+          return;
+        }
+        
         setFeaturedProducts(response.data);
       } catch (error) {
         console.error('Error fetching featured products:', error);
+        setFeaturedProducts([]);
       } finally {
         setIsLoading(false);
       }
@@ -70,10 +79,10 @@ const Landing = () => {
           </div>
           
           {isLoading ? (
-            <div className="flex justify-center items-center h-64">
+            <div className="flex justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-secondaryBrown"></div>
             </div>
-          ) : (
+          ) : featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
                 <ProductItem
@@ -86,6 +95,8 @@ const Landing = () => {
                 />
               ))}
             </div>
+          ) : (
+            <p className="text-center text-gray-500">Nenhum produto em destaque disponível</p>
           )}
           
           <div className="text-center mt-12">
