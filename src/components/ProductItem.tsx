@@ -1,5 +1,9 @@
+import React from 'react';
 import { Link } from "react-router-dom";
 import { formatCategoryName } from "../utils/formatCategoryName";
+import { useAppDispatch } from "../hooks";
+import { addProductToTheCart } from "../features/cart/cartSlice";
+import toast from "react-hot-toast";
 
 interface ProductItemProps {
   id: string;
@@ -9,13 +13,38 @@ interface ProductItemProps {
   price: number;
   popularity?: number;
   stock?: number;
+  description?: string;
+  featured?: boolean;
 }
 
-const ProductItem = ({ id, image, title, category = "", price, popularity, stock }: ProductItemProps) => {
+const ProductItem = ({ id, image, title, category = "", price, popularity, stock, description, featured }: ProductItemProps) => {
+  const dispatch = useAppDispatch();
+  
   // Verificar se é um produto novo (adicionado nos últimos 7 dias)
   const isNewProduct = () => {
     // Simulando que todos os produtos são novos para fins de demonstração
     return true;
+  };
+
+  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Previne a navegação ao clicar no botão
+    dispatch(
+      addProductToTheCart({
+        id,
+        image,
+        title,
+        category,
+        price,
+        quantity: 1,
+        size: "m", // Tamanho padrão
+        color: "black", // Cor padrão
+        popularity,
+        stock,
+        description,
+        featured
+      })
+    );
+    toast.success("Produto adicionado ao carrinho");
   };
 
   return (
@@ -52,40 +81,21 @@ const ProductItem = ({ id, image, title, category = "", price, popularity, stock
         </div>
       </Link>
       <div className="p-4">
-        <Link
-          to={`/product/${id}`}
-          className="text-black text-xl font-medium tracking-[0.5px] hover:text-secondaryBrown transition-colors duration-300"
-        >
-          <h2 className="line-clamp-2 h-14">{title}</h2>
-        </Link>
-        <p className="text-secondaryBrown text-sm tracking-wide mt-1">
-          {formatCategoryName(category)}{" "}
-        </p>
-        <div className="flex justify-between items-center mt-2">
-          <p className="text-black text-xl font-bold">
-            R$ {price.toFixed(2)}
-          </p>
-          {popularity !== undefined && (
-            <div className="flex items-center">
-              <span className="text-yellow-500">★</span>
-              <span className="text-sm ml-1">{popularity}/5</span>
-            </div>
+        <Link to={`/product/${id}`} className="block">
+          <h3 className="text-lg font-medium text-gray-900 mb-1">{title}</h3>
+          {category && (
+            <p className="text-sm text-gray-500 mb-2">{formatCategoryName(category)}</p>
           )}
-        </div>
-        <div className="w-full flex flex-col gap-2 mt-4">
-          <Link
-            to={`/product/${id}`}
-            className="text-white bg-secondaryBrown text-center text-sm font-medium tracking-[0.5px] py-2 rounded-md hover:bg-opacity-90 transition duration-300"
-          >
-            Ver produto
-          </Link>
-          <Link
-            to={`/cart`}
-            className="bg-white text-secondaryBrown text-center text-sm border border-secondaryBrown font-medium tracking-[0.5px] py-2 rounded-md hover:bg-secondaryBrown hover:text-white transition duration-300"
-          >
-            Adicionar ao carrinho
-          </Link>
-        </div>
+          <p className="text-lg font-semibold text-gray-900 mb-4">${price.toFixed(2)}</p>
+        </Link>
+        
+        <button
+          onClick={handleAddToCart}
+          className="w-full bg-secondaryBrown text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition duration-300 touch-manipulation"
+          disabled={stock !== undefined && stock === 0}
+        >
+          {stock !== undefined && stock === 0 ? 'Esgotado' : 'Adicionar ao Carrinho'}
+        </button>
       </div>
     </div>
   );

@@ -14,12 +14,11 @@ const Cart = () => {
   
   const handleRemoveItem = (id: string) => {
     dispatch(removeProductFromTheCart(id));
-    toast.success("Item removed from cart");
+    toast.success("Item removido do carrinho");
   };
   
   const handleQuantityChange = (id: string, quantity: number) => {
     if (quantity < 1) return;
-    
     dispatch(updateProductQuantity({ id, quantity }));
   };
 
@@ -34,13 +33,13 @@ const Cart = () => {
   if (cartItems.length === 0) {
     return (
       <div className="max-w-screen-xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
-        <p className="text-xl text-gray-600 mb-8">Your cart is currently empty.</p>
+        <h1 className="text-3xl font-bold mb-8">Seu Carrinho</h1>
+        <p className="text-xl text-gray-600 mb-8">Seu carrinho está vazio.</p>
         <Link 
           to="/shop" 
           className="inline-block bg-secondaryBrown text-white px-6 py-3 rounded-md hover:bg-opacity-90 transition duration-300"
         >
-          Continue Shopping
+          Continuar Comprando
         </Link>
       </div>
     );
@@ -48,7 +47,7 @@ const Cart = () => {
   
   return (
     <div className="max-w-screen-xl mx-auto px-4 py-8 sm:py-16">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Your Cart</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Seu Carrinho</h1>
       
       {/* Mobile-optimized product cards */}
       <div className="space-y-4 md:hidden">
@@ -56,11 +55,20 @@ const Cart = () => {
           <div key={item.id} className="bg-white p-4 rounded-lg shadow">
             <div className="flex items-center space-x-4">
               <div className="w-20 h-20 flex-shrink-0">
-                <ProductImage image={item.image} alt={item.name} className="w-full h-full object-cover rounded" />
+                <img 
+                  src={item.image} 
+                  alt={item.title} 
+                  className="w-full h-full object-cover rounded"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder-image.jpg';
+                  }}
+                />
               </div>
               <div className="flex-1">
-                <h3 className="font-medium text-gray-900">{item.name}</h3>
+                <h3 className="font-medium text-gray-900">{item.title}</h3>
                 <p className="text-sm text-gray-500">{formatCategoryName(item.category)}</p>
+                {item.size && <p className="text-sm text-gray-500">Tamanho: {item.size.toUpperCase()}</p>}
+                {item.color && <p className="text-sm text-gray-500">Cor: {item.color}</p>}
                 <div className="mt-2 flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <button 
@@ -84,7 +92,7 @@ const Cart = () => {
                     <TrashIcon className="h-5 w-5" />
                   </button>
                 </div>
-                <p className="mt-2 font-medium text-gray-900">${item.price * item.quantity}</p>
+                <p className="mt-2 font-medium text-gray-900">R$ {(item.price * item.quantity).toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -95,25 +103,24 @@ const Cart = () => {
       <div className="hidden md:block">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            {/* Cart Items */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Product
+                      Produto
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
+                      Preço
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Quantity
+                      Quantidade
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Total
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                      Ações
                     </th>
                   </tr>
                 </thead>
@@ -123,10 +130,13 @@ const Cart = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-16 w-16 flex-shrink-0">
-                            <ProductImage 
+                            <img 
                               src={item.image} 
                               alt={item.title} 
                               className="h-16 w-16 object-cover rounded"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder-image.jpg';
+                              }}
                             />
                           </div>
                           <div className="ml-4">
@@ -138,19 +148,19 @@ const Cart = () => {
                             </div>
                             {item.size && (
                               <div className="text-sm text-gray-500">
-                                Size: {item.size}
+                                Tamanho: {item.size.toUpperCase()}
                               </div>
                             )}
                             {item.color && (
                               <div className="text-sm text-gray-500">
-                                Color: {item.color}
+                                Cor: {item.color}
                               </div>
                             )}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">${item.price.toFixed(2)}</div>
+                        <div className="text-sm text-gray-900">R$ {item.price.toFixed(2)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -171,7 +181,7 @@ const Cart = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          R$ {(item.price * item.quantity).toFixed(2)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -179,7 +189,7 @@ const Cart = () => {
                           onClick={() => handleRemoveItem(item.id)}
                           className="text-red-600 hover:text-red-900"
                         >
-                          Remove
+                          Remover
                         </button>
                       </td>
                     </tr>
@@ -191,19 +201,19 @@ const Cart = () => {
           
           {/* Order Summary */}
           <div className="bg-white rounded-lg shadow-md p-6 h-fit">
-            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+            <h2 className="text-xl font-bold mb-4">Resumo do Pedido</h2>
             <div className="flex justify-between mb-2">
               <span>Subtotal</span>
-              <span>${totalAmount.toFixed(2)}</span>
+              <span>R$ {totalAmount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between mb-2">
-              <span>Shipping</span>
-              <span>Free</span>
+              <span>Frete</span>
+              <span>Grátis</span>
             </div>
             <div className="border-t border-gray-200 my-4"></div>
             <div className="flex justify-between mb-4">
               <span className="font-bold">Total</span>
-              <span className="font-bold">${totalAmount.toFixed(2)}</span>
+              <span className="font-bold">R$ {totalAmount.toFixed(2)}</span>
             </div>
             <div className="space-y-2">
               <button 
@@ -216,7 +226,7 @@ const Cart = () => {
                 to="/checkout" 
                 className="block w-full bg-secondaryBrown text-white text-center px-4 py-2 rounded-md hover:bg-opacity-90 transition duration-300"
               >
-                Proceed to Checkout
+                Finalizar Compra
               </Link>
             </div>
           </div>
@@ -226,20 +236,20 @@ const Cart = () => {
       <div className="mt-8 space-y-4">
         <div className="flex justify-between items-center text-lg font-semibold">
           <span>Total:</span>
-          <span>${totalAmount}</span>
+          <span>R$ {totalAmount.toFixed(2)}</span>
         </div>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link 
             to="/shop" 
             className="w-full sm:w-auto text-center bg-gray-100 text-gray-800 px-6 py-3 rounded-md hover:bg-gray-200 transition duration-300 touch-manipulation"
           >
-            Continue Shopping
+            Continuar Comprando
           </Link>
           <button
             onClick={handleOpenPaymentModal}
             className="w-full sm:w-auto bg-secondaryBrown text-white px-6 py-3 rounded-md hover:bg-opacity-90 transition duration-300 touch-manipulation"
           >
-            Proceed to Checkout
+            Finalizar Compra
           </button>
         </div>
       </div>
